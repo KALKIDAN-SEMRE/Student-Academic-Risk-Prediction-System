@@ -1,59 +1,59 @@
 /**
  * Main App Component
- * 
+ *
  * This is the root component of our application.
  * It manages the overall state and renders the prediction form.
  */
 
-import { useState } from 'react'
-import './App.css'
+import { useState } from "react";
+import "./App.css";
 
 function App() {
   // State to store form input values
   const [formData, setFormData] = useState({
-    attendance: '',
-    study_hours: '',
-    assignments_completed: '',
-    quiz_score: '',
-    midterm_score: '',
-    internet_access: '1', // Default to "Yes"
-    past_failures: ''
-  })
+    attendance: "",
+    study_hours: "",
+    assignments_completed: "",
+    quiz_score: "",
+    midterm_score: "",
+    internet_access: "1", // Default to "Yes"
+    past_failures: "",
+  });
 
   // State to store prediction results
-  const [results, setResults] = useState(null)
-  
+  const [results, setResults] = useState(null);
+
   // State to track if we're currently loading (waiting for API response)
-  const [loading, setLoading] = useState(false)
-  
+  const [loading, setLoading] = useState(false);
+
   // State to store any error messages
-  const [error, setError] = useState(null)
+  const [error, setError] = useState(null);
 
   /**
    * Handle input field changes
    * Updates the formData state when user types in any field
    */
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
+      [name]: value,
+    }));
     // Clear error when user starts typing again
-    setError(null)
-  }
+    setError(null);
+  };
 
   /**
    * Handle form submission
    * Sends the student data to the backend API and displays results
    */
   const handleSubmit = async (e) => {
-    e.preventDefault() // Prevent page refresh
-    
+    e.preventDefault(); // Prevent page refresh
+
     // Reset previous results and errors
-    setResults(null)
-    setError(null)
-    setLoading(true)
+    setResults(null);
+    setError(null);
+    setLoading(true);
 
     try {
       // Convert form data to the format expected by the backend
@@ -64,50 +64,53 @@ function App() {
         quiz_score: parseFloat(formData.quiz_score),
         midterm_score: parseFloat(formData.midterm_score),
         internet_access: parseInt(formData.internet_access), // Convert to 0 or 1
-        past_failures: parseInt(formData.past_failures)
-      }
+        past_failures: parseInt(formData.past_failures),
+      };
 
       // Validate that all fields are filled
-      if (Object.values(requestData).some(val => isNaN(val) || val === '')) {
-        throw new Error('Please fill in all fields with valid numbers')
+      if (Object.values(requestData).some((val) => isNaN(val) || val === "")) {
+        throw new Error("Please fill in all fields with valid numbers");
       }
 
       // Send POST request to the backend API
-      const response = await fetch('http://127.0.0.1:8001/predict', {
-        method: 'POST',
+      // Update this URL to match your Render backend URL
+      const API_URL = "https://student-risk-api-mgui.onrender.com";
+      const response = await fetch(`${API_URL}/predict`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestData)
-      })
+        body: JSON.stringify(requestData),
+      });
 
       // Check if the request was successful
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }))
-        throw new Error(errorData.detail || `Server error: ${response.status}`)
+        const errorData = await response
+          .json()
+          .catch(() => ({ detail: "Unknown error" }));
+        throw new Error(errorData.detail || `Server error: ${response.status}`);
       }
 
       // Get the prediction results from the response
-      const data = await response.json()
-      setResults(data)
-      
+      const data = await response.json();
+      setResults(data);
     } catch (err) {
       // Handle any errors (network errors, validation errors, etc.)
-      setError(err.message || 'Failed to get prediction. Please try again.')
-      console.error('Prediction error:', err)
+      setError(err.message || "Failed to get prediction. Please try again.");
+      console.error("Prediction error:", err);
     } finally {
       // Always stop loading, whether success or error
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   /**
    * Helper function to get risk status label
    * Returns "At Risk" if prediction is 1, "Not At Risk" if 0
    */
   const getRiskLabel = (prediction) => {
-    return prediction === 1 ? 'At Risk' : 'Not At Risk'
-  }
+    return prediction === 1 ? "At Risk" : "Not At Risk";
+  };
 
   /**
    * Helper function to get risk status class for styling
@@ -115,29 +118,35 @@ function App() {
    */
   const getRiskClass = (prediction, probability = null) => {
     if (prediction === 1) {
-      return 'risk-at-risk'
-    } else if (probability !== null && probability >= 0.45 && probability <= 0.55) {
+      return "risk-at-risk";
+    } else if (
+      probability !== null &&
+      probability >= 0.45 &&
+      probability <= 0.55
+    ) {
       // Yellow/orange for uncertain predictions (close to 50%)
-      return 'risk-uncertain'
+      return "risk-uncertain";
     } else {
-      return 'risk-not-at-risk'
+      return "risk-not-at-risk";
     }
-  }
+  };
 
   /**
    * Helper function to format probability as percentage
    */
   const formatProbability = (probability) => {
-    if (probability === null || probability === undefined) return 'N/A'
-    return `${Math.round(probability * 100)}%`
-  }
+    if (probability === null || probability === undefined) return "N/A";
+    return `${Math.round(probability * 100)}%`;
+  };
 
   return (
     <div className="app">
       <div className="container">
         <header className="header">
           <h1>Student Academic Risk Prediction</h1>
-          <p>Enter student data below to predict academic risk using ML models</p>
+          <p>
+            Enter student data below to predict academic risk using ML models
+          </p>
         </header>
 
         {/* Prediction Form */}
@@ -262,12 +271,8 @@ function App() {
           </div>
 
           {/* Submit Button */}
-          <button 
-            type="submit" 
-            className="submit-button"
-            disabled={loading}
-          >
-            {loading ? 'Predicting...' : 'Get Prediction'}
+          <button type="submit" className="submit-button" disabled={loading}>
+            {loading ? "Predicting..." : "Get Prediction"}
           </button>
         </form>
 
@@ -282,27 +287,39 @@ function App() {
         {results && (
           <div className="results">
             <h2>Prediction Results</h2>
-            
+
             {/* Logistic Regression Results */}
             <div className="result-item">
               <h3>Logistic Regression (Trend-based model)</h3>
-              <div className={`risk-status ${getRiskClass(
-                results.logistic_regression?.prediction ?? results.logistic_regression,
-                results.logistic_regression?.risk_probability
-              )}`}>
-                {getRiskLabel(results.logistic_regression?.prediction ?? results.logistic_regression)}
-                {results.logistic_regression?.risk_probability !== undefined && (
+              <div
+                className={`risk-status ${getRiskClass(
+                  results.logistic_regression?.prediction ??
+                    results.logistic_regression,
+                  results.logistic_regression?.risk_probability
+                )}`}
+              >
+                {getRiskLabel(
+                  results.logistic_regression?.prediction ??
+                    results.logistic_regression
+                )}
+                {results.logistic_regression?.risk_probability !==
+                  undefined && (
                   <span className="probability-badge">
-                    {formatProbability(results.logistic_regression.risk_probability)} risk
+                    {formatProbability(
+                      results.logistic_regression.risk_probability
+                    )}{" "}
+                    risk
                   </span>
                 )}
               </div>
-              
+
               {/* Explanation Section */}
               {results.logistic_regression?.explanation && (
                 <div className="explanation-section">
                   <h4>Why this prediction?</h4>
-                  <p className="explanation-text">{results.logistic_regression.explanation}</p>
+                  <p className="explanation-text">
+                    {results.logistic_regression.explanation}
+                  </p>
                 </div>
               )}
             </div>
@@ -310,17 +327,23 @@ function App() {
             {/* Decision Tree Results */}
             <div className="result-item">
               <h3>Decision Tree (Rule-based model)</h3>
-              <div className={`risk-status ${getRiskClass(
-                results.decision_tree?.prediction ?? results.decision_tree
-              )}`}>
-                {getRiskLabel(results.decision_tree?.prediction ?? results.decision_tree)}
+              <div
+                className={`risk-status ${getRiskClass(
+                  results.decision_tree?.prediction ?? results.decision_tree
+                )}`}
+              >
+                {getRiskLabel(
+                  results.decision_tree?.prediction ?? results.decision_tree
+                )}
               </div>
-              
+
               {/* Explanation Section */}
               {results.decision_tree?.explanation && (
                 <div className="explanation-section">
                   <h4>Why this prediction?</h4>
-                  <p className="explanation-text">{results.decision_tree.explanation}</p>
+                  <p className="explanation-text">
+                    {results.decision_tree.explanation}
+                  </p>
                 </div>
               )}
             </div>
@@ -328,8 +351,7 @@ function App() {
         )}
       </div>
     </div>
-  )
+  );
 }
 
-export default App
-
+export default App;
