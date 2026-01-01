@@ -73,15 +73,16 @@ function App() {
       }
 
       // Send POST request to the backend API
-      // Update this URL to match your Render backend URL
-      const API_URL = "https://student-risk-api-mgui.onrender.com";
-      const response = await fetch(`${API_URL}/predict`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestData),
-      });
+      const response = await fetch(
+        "https://student-risk-api-mgui.onrender.com",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestData),
+        }
+      );
 
       // Check if the request was successful
       if (!response.ok) {
