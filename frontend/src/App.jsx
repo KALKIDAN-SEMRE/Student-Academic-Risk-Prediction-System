@@ -74,7 +74,7 @@ function App() {
 
       // Send POST request to the backend API
       const response = await fetch(
-        "https://student-risk-api-mgui.onrender.com",
+        "https://student-risk-api-mgui.onrender.com/predict",
         {
           method: "POST",
           headers: {
